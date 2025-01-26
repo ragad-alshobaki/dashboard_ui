@@ -4,8 +4,9 @@ import 'package:responsive_dashboard_ui/constants.dart';
 import 'package:responsive_dashboard_ui/models/RecentFile.dart';
 
 class RecentFiles extends StatelessWidget {
+  final String? icon, title, date, size;
   const RecentFiles({
-    super.key,
+    super.key, this.icon, this.title, this.date, this.size,
   });
 
   @override
@@ -60,6 +61,6 @@ class RecentFiles extends StatelessWidget {
         ],
       )),
       DataCell(Text(fileInfo.date !)),
-      DataCell(Text(fileInfo.date !))
+      DataCell(Text(fileInfo.size !))
     ]);
   }

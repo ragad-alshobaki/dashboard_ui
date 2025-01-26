@@ -14,6 +14,7 @@ class StorageDetails extends StatelessWidget {
     return Container(
       // height: 500,
       // color: secondaryColor,
+      padding: const EdgeInsets.all(defaultPadding),
       decoration: const BoxDecoration(
           color: secondaryColor,
           borderRadius: BorderRadius.all(Radius.circular(10))),
@@ -23,12 +24,14 @@ class StorageDetails extends StatelessWidget {
           Text(
             "Storage Details",
             style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w500),
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+              ),
           ),
-          SizedBox(
+          const SizedBox(
             height: defaultPadding,
           ),
-          Chart(),
+          const Chart(),
           StorageInfoCard(
             svgSrc: "assets/icons/Documents.svg",
             title: "Documents Files",

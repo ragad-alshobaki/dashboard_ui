@@ -1,55 +1,92 @@
 import 'package:flutter/material.dart';
-// import 'package:flutter_svg/flutter_svg.dart';
 import 'package:responsive_dashboard_ui/constants.dart';
 import 'package:responsive_dashboard_ui/models/my_files.dart';
 import 'package:responsive_dashboard_ui/responsive.dart';
+import 'package:responsive_dashboard_ui/screens/dashboard/components/file_info_card.dart';
+import 'package:responsive_dashboard_ui/services/data_service.dart';
 
-import 'file_info_card.dart';
+class MyFiles extends StatefulWidget {
+  const MyFiles({super.key});
 
-class MyFiles extends StatelessWidget {
-  // final Size _size = MediaQuery.of(context).size;      ***error->need to declare in widget?
-  const MyFiles({
-    super.key,
-  });
+  @override
+  _MyFilesState createState() => _MyFilesState();
+}
+
+class _MyFilesState extends State<MyFiles> {
+  late Future<List<CloudStorageInfo>> myFiles;
+
+  @override
+  void initState() {
+    super.initState();
+    myFiles = fetchMyFiles();
+  }
 
   @override
   Widget build(BuildContext context) {
     final Size _size = MediaQuery.of(context).size;
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+    return FutureBuilder<List<CloudStorageInfo>>(
+      future: myFiles,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No files available"));
+        }
+
+        final files = snapshot.data!;
+
+        return Column(
           children: [
-            Text(
-              "My Files",
-              // style: Theme.of(context).textTheme.bodyText2,    ***Not working - Showing error
-            ),
-            ElevatedButton.icon(
-              style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "My Files",
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                ElevatedButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
                       horizontal: defaultPadding * 1.5,
-                      vertical: defaultPadding)),
-              onPressed: () {},
-              icon: Icon(Icons.add),
-              label: Text("Add New"),
+                      vertical:
+                          defaultPadding / (Responsive.isMobile(context) ? 2 : 1),
+                    ),
+                  ),
+                  onPressed: () {},
+                  icon: Icon(Icons.add),
+                  label: Text("Add New"),
+                ),
+              ],
             ),
+            SizedBox(height: defaultPadding),
+            if (Responsive.isMobile(context))
+              FilesInfoCardGridView(
+                crossAxisCount: _size.width < 650 ? 2 : 4,
+                childAspectRatio: _size.width < 650 ? 1.3 : 1,
+                files: files,
+              )
+            else
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(
+                    files.length,
+                    (index) => Padding(
+                      padding: const EdgeInsets.only(right: defaultPadding),
+                      child: SizedBox(
+                        width: _size.width / 4,
+                        child: FileInfoCard(info: files[index]),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
-        ),
-        SizedBox(
-          height: defaultPadding,
-        ),
-        // FilesInfoCardGridView()
-        Responsive(
-          mobile: FilesInfoCardGridView(
-            crossAxisCount: _size.width < 650 ? 2:4,
-            childAspectRatio: _size.width < 650 ? 1.3:1,
-          ),
-          tablet: FilesInfoCardGridView(),
-          desktop: FilesInfoCardGridView(
-            childAspectRatio: _size.width < 1400 ? 1.1: 1.4,
-          )
-          )
-      ],
+        );
+      },
     );
   }
 }
@@ -57,25 +94,28 @@ class MyFiles extends StatelessWidget {
 class FilesInfoCardGridView extends StatelessWidget {
   final int crossAxisCount;
   final double childAspectRatio;
+  final List<CloudStorageInfo> files;
+
   const FilesInfoCardGridView({
-    super.key, this.crossAxisCount = 4, this.childAspectRatio = 1,
+    super.key,
+    required this.crossAxisCount,
+    required this.childAspectRatio,
+    required this.files,
   });
 
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
       physics: NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: demoMyFiles.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: defaultPadding,
-            mainAxisExtent: defaultPadding,
-            childAspectRatio: childAspectRatio,
-            ),
-        itemBuilder: (context, index) => FileInfoCard(
-              info: demoMyFiles[index],
-            ));
+      shrinkWrap: true,
+      itemCount: files.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: defaultPadding,
+        mainAxisSpacing: defaultPadding,
+        childAspectRatio: childAspectRatio,
+      ),
+      itemBuilder: (context, index) => FileInfoCard(info: files[index]),
+    );
   }
 }
-
