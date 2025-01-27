@@ -13,32 +13,29 @@ class MyFiles extends StatefulWidget {
 }
 
 class _MyFilesState extends State<MyFiles> {
-  late Future<List<CloudStorageInfo>> myFiles;
+   List<CloudStorageInfo> myFiles =[];
 
   @override
   void initState() {
     super.initState();
-    myFiles = fetchMyFiles();
+    // myFiles = fetchMyFiles();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    if(mounted){
+      myFiles = await fetchMyFiles();
+    setState(() {
+      
+    });
+    }
+});
   }
 
   @override
   Widget build(BuildContext context) {
     final Size _size = MediaQuery.of(context).size;
 
-    return FutureBuilder<List<CloudStorageInfo>>(
-      future: myFiles,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text("No files available"));
-        }
-
-        final files = snapshot.data!;
-
-        return Column(
+    return 
+    myFiles.isEmpty ? Container():
+    Column(
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -66,19 +63,19 @@ class _MyFilesState extends State<MyFiles> {
               FilesInfoCardGridView(
                 crossAxisCount: _size.width < 650 ? 2 : 4,
                 childAspectRatio: _size.width < 650 ? 1.3 : 1,
-                files: files,
+                files: myFiles,
               )
             else
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: List.generate(
-                    files.length,
+                    myFiles.length,
                     (index) => Padding(
                       padding: const EdgeInsets.only(right: defaultPadding),
                       child: SizedBox(
                         width: _size.width / 4,
-                        child: FileInfoCard(info: files[index]),
+                        child: FileInfoCard(info: myFiles[index]),
                       ),
                     ),
                   ),
@@ -86,8 +83,6 @@ class _MyFilesState extends State<MyFiles> {
               ),
           ],
         );
-      },
-    );
   }
 }
 
