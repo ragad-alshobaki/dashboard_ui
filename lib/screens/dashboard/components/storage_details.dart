@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:responsive_dashboard_ui/constants.dart';
+import 'package:responsive_dashboard_ui/models/storage_details.dart';
 
 import 'chart.dart';
 import 'storage_info_card.dart';
@@ -8,6 +12,13 @@ class StorageDetails extends StatelessWidget {
   const StorageDetails({
     super.key,
   });
+
+  Future<List<StorageInfo>> loadStorageData() async {
+    String jsonString = await rootBundle.loadString('assets/storage_details.json');
+    List<dynamic> jsonResponse = json.decode(jsonString);
+
+    return jsonResponse.map((item) => StorageInfo.fromJson(item)).toList();
+  }
 
   @override
   Widget build(BuildContext context) {

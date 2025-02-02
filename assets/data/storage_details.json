@@ -1,0 +1,26 @@
+[
+    {
+        "svgSrc": "assets/icons/Documents.svg",
+        "title": "Documents Files",
+        "numOfFiles": 1328,
+        "amountOfFiles": "1.3GGB"
+    },
+    {
+        "svgSrc": "assets/icons/media.svg",
+        "title": "Media Files",
+        "numOfFiles": 1328,
+        "amountOfFiles": "15.3GGB"
+    },
+    {
+        "svgSrc": "assets/icons/folder.svg",
+        "title": "Other Files",
+        "numOfFiles": 1328,
+        "amountOfFiles": "1.3GGB"
+    },
+    {
+        "svgSrc": "assets/icons/unknown.svg",
+        "title": "Unknown",
+        "numOfFiles": 140,
+        "amountOfFiles": "1.3GGB"
+    }
+]
