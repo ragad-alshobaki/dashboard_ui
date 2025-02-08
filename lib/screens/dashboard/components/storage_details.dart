@@ -14,7 +14,8 @@ class StorageDetails extends StatelessWidget {
   });
 
   Future<List<StorageInfo>> loadStorageData() async {
-    String jsonString = await rootBundle.loadString('assets/storage_details.json');
+    String jsonString =
+        await rootBundle.loadString('assets/data/storage_details.json');
     List<dynamic> jsonResponse = json.decode(jsonString);
 
     return jsonResponse.map((item) => StorageInfo.fromJson(item)).toList();
@@ -35,41 +36,46 @@ class StorageDetails extends StatelessWidget {
           Text(
             "Storage Details",
             style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(
             height: defaultPadding,
           ),
           const Chart(),
-          StorageInfoCard(
-            svgSrc: "assets/icons/Documents.svg",
-            title: "Documents Files",
-            numOfFiles: 1328,
-            amountOfFiles: "1.3GGB",
-          ),
-          StorageInfoCard(
-            svgSrc: "assets/icons/media.svg",
-            title: "Media Files",
-            numOfFiles: 1328,
-            amountOfFiles: "15.3GGB",
-          ),
-          StorageInfoCard(
-            svgSrc: "assets/icons/folder.svg",
-            title: "Other Files",
-            numOfFiles: 1328,
-            amountOfFiles: "1.3GGB",
-          ),
-          StorageInfoCard(
-            svgSrc: "assets/icons/unknown.svg",
-            title: "Unknown",
-            numOfFiles: 140,
-            amountOfFiles: "1.3GGB",
+          FutureBuilder<List<StorageInfo>>(
+            future: loadStorageData(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                    child:
+                        CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(
+                    child:
+                        Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                    child: Text('No data available'));
+              }
+
+              List<StorageInfo> storageItems = snapshot.data!;
+
+              return Column(
+                children: storageItems.map((storage) {
+                  return StorageInfoCard(
+                    svgSrc: storage.svgSrc,
+                    title: storage.title,
+                    numOfFiles: storage.numOfFiles,
+                    amountOfFiles: storage.amountOfFiles,
+                  );
+                }).toList(),
+              );
+            },
           ),
         ],
       ),
     );
   }
 }
-

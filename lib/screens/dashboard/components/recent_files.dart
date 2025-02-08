@@ -40,7 +40,7 @@ class _RecentFilesState extends State<RecentFiles> {
       await db.insert('recent_files', file.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
     } //to SQFlite
 
-    print("Data inserted into database successfully!");
+    // print("Data inserted into database successfully!");
 
     // Fetch data from SQFlite after insertion
     final List<Map<String, dynamic>> queryResult = await db.query('recent_files');
@@ -76,9 +76,9 @@ class _RecentFilesState extends State<RecentFiles> {
                   DataColumn(label: Text("Size"))
                 ],
                 rows: List.generate(
-                    demoRecentFiles.length,
+                    recentFiles.length,
                     (index) => recentFileDataRow(
-                        demoRecentFiles[index]))),
+                        recentFiles[index]))),
           ),
         ],
       ),
