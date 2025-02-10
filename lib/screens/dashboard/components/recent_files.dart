@@ -32,7 +32,7 @@ class _RecentFilesState extends State<RecentFiles> {
     final DatabaseHelper dbHelper = DatabaseHelper();
     final db = await dbHelper.database;
 
-    String jsonString = await rootBundle.loadString('assets/recent_files.json');
+    String jsonString = await rootBundle.loadString('assets/data/recent_files.json');
     List<dynamic> jsonData = json.decode(jsonString);
 
     for (var item in jsonData) {
