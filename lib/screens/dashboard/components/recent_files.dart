@@ -11,96 +11,99 @@ import 'package:sqflite/sqflite.dart';
 // import 'package:path/path.dart';
 
 class RecentFiles extends StatefulWidget {
-  const RecentFiles({super.key});
+  final String? icon, title, date, size;
+  const RecentFiles({
+    super.key, this.icon, this.title, this.date, this.size,
+  });
 
   @override
   State<RecentFiles> createState() => _RecentFilesState();
 }
 
 class _RecentFilesState extends State<RecentFiles> {
-  final DatabaseHelper dbHelper = DatabaseHelper();
-  Future<void> loadJsonAndInsertIntoDatabase() async {
-    String jsonString = await rootBundle.loadString('assets/recent_files.json');
-    List<dynamic> jsonData = json.decode(jsonString);
-
-    List<RecentFile> files =
-        jsonData.map((e) => RecentFile.fromJson(e)).toList();
-    await dbHelper.insertRecentFile(files);
-  }
-
-  // List<RecentFile> recentFiles = [];
+  List<RecentFile> recentFiles = [];
   @override
   void initState() {
     super.initState();
-    loadJsonAndInsertIntoDatabase(); //=widget initialized
+    loadJsonAndInsertIntoDatabase();  //=widget initialized
+  }
+
+  Future<void> loadJsonAndInsertIntoDatabase() async {
+    final DatabaseHelper dbHelper = DatabaseHelper();
+    final db = await dbHelper.database;
+
+    String jsonString = await rootBundle.loadString('assets/recent_files.json');
+    List<dynamic> jsonData = json.decode(jsonString);
+
+    for (var item in jsonData) {
+      RecentFile file = RecentFile.fromJson(item);
+      await db.insert('recent_files', file.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    } //to SQFlite
+
+    print("Data inserted into database successfully!");
+
+    // Fetch data from SQFlite after insertion
+    final List<Map<String, dynamic>> queryResult = await db.query('recent_files');
+    setState(() {
+      // Update the UI with the data from the database
+      recentFiles = queryResult.map((e) => RecentFile.fromMap(e)).toList();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<RecentFile>>(
-        future: dbHelper.getRecentFiles(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            print("Error: ${snapshot.error}");
-            return Center(child: Text('Error loading recent files'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No recent files available'));
-          }
-
-          final recentFiles = snapshot.data!;
-
-          return Container(
-            padding: EdgeInsets.all(defaultPadding),
-            decoration: BoxDecoration(
-                color: secondaryColor,
-                borderRadius: const BorderRadius.all(Radius.circular(10))),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Recent Files",
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: DataTable(
-                    columnSpacing: defaultPadding,
-                    horizontalMargin: 0,
-                    columns: [
-                      DataColumn(label: Text("File Name")),
-                      DataColumn(label: Text("Data")),
-                      DataColumn(label: Text("Size"))
-                    ],
-                    rows: recentFiles
-                        .map((file) => recentFileDataRow(file))
-                        .toList(),
-                  ),
-                ),
-              ],
-            ),
-          );
-        });
+    return
+    recentFiles.isEmpty? Container():
+    Container(
+      padding: EdgeInsets.all(defaultPadding),
+      decoration: BoxDecoration(
+          color: secondaryColor,
+          borderRadius:
+              const BorderRadius.all(Radius.circular(10))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Recent Files",
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          SizedBox(
+            width: double.infinity,
+            child: DataTable(
+                columnSpacing: defaultPadding,
+                horizontalMargin: 0,
+                columns: [
+                  DataColumn(label: Text("File Name")),
+                  DataColumn(label: Text("Data")),
+                  DataColumn(label: Text("Size"))
+                ],
+                rows: List.generate(
+                    recentFiles.length,
+                    (index) => recentFileDataRow(
+                        recentFiles[index]))),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-DataRow recentFileDataRow(RecentFile fileInfo) {
-  return DataRow(cells: [
-    DataCell(Row(
-      children: [
-        SvgPicture.asset(
-          fileInfo.icon!,
-          height: 30,
-          width: 30,
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-          child: Text(fileInfo.title!),
-        )
-      ],
-    )),
-    DataCell(Text(fileInfo.date!)),
-    DataCell(Text(fileInfo.size!))
-  ]);
-}
+  DataRow recentFileDataRow(RecentFile fileInfo) {
+    return DataRow(cells: [
+      DataCell(Row(
+        children: [
+          SvgPicture.asset(
+            fileInfo.icon !,
+            height: 30,
+            width: 30,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
+            child: Text(fileInfo.title !),
+          )
+        ],
+      )),
+      DataCell(Text(fileInfo.date !)),
+      DataCell(Text(fileInfo.size !))
+    ]);
+  }
